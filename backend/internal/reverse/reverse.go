@@ -4,22 +4,43 @@ import (
 	"encoding/json"
 	"gilmour/opiso/internal/error"
 	"net/http"
+	"sync"
 )
 
-type ReversedWord struct {
-	Original string `json:"original"`
-	Reversed string `json:"reversed"`
+type reverseRequest struct {
+	Messages []string `json:"messages"`
+}
+
+type reverseResponse struct {
+	Reversed []string `json:"reversed"`
 }
 
 func ReverseHandler(w http.ResponseWriter, r *http.Request) {
-	word := r.PathValue("word")
-	if len(word) == 0 {
+
+	decoder := json.NewDecoder(r.Body)
+	var requestBody reverseRequest
+	if err := decoder.Decode(&requestBody); err != nil || requestBody.Messages == nil {
 		error.BadRequestHandler(w, r)
 		return
 	}
-	result := ReversedWord{Original: word, Reversed: reverseWord(word)}
 
+	results := make([]string, len(requestBody.Messages))
+	var wg sync.WaitGroup
+
+	for i, word := range results {
+		wg.Add(1)
+		go processWord(word, i, results, &wg)
+	}
+
+	wg.Wait()
+
+	result := reverseResponse{Reversed: requestBody.Messages}
 	json.NewEncoder(w).Encode(result)
+}
+
+func processWord(word string, index int, results []string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	results[index] = reverseWord(word)
 }
 
 func reverseWord(word string) string {

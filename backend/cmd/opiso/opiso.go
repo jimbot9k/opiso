@@ -25,7 +25,7 @@ func main() {
 	}
 
 	router := http.NewServeMux()
-	router.HandleFunc("GET /reverse/{word}", reverse.ReverseHandler)
+	router.HandleFunc("POST /reverse", reverse.ReverseHandler)
 	router.HandleFunc("/", error.NotFoundHandler)
 
 	s := &http.Server{
