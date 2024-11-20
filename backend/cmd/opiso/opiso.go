@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"gilmour/opiso/internal/error"
-	"gilmour/opiso/internal/reverse"
+	"github.com/jimbot9k/opiso/internal/error"
+	"github.com/jimbot9k/opiso/internal/reverse"
 	"log"
 	"net/http"
 	"os"

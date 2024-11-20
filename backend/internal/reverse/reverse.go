@@ -2,7 +2,7 @@ package reverse
 
 import (
 	"encoding/json"
-	"gilmour/opiso/internal/error"
+	"github.com/jimbot9k/opiso/internal/error"
 	"net/http"
 	"sync"
 )
