@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jimbot9k/opiso/internal/error"
 	"github.com/jimbot9k/opiso/internal/reverse"
+	"github.com/jimbot9k/opiso/internal/cors"
 	"log"
 	"net/http"
 	"os"
@@ -24,6 +25,11 @@ func main() {
 		port = DEFAULT_PORT
 	}
 
+	clientHost, clientHostFound := os.LookupEnv("FRONTEND_HOST")
+	if !clientHostFound {
+		clientHost = fmt.Sprintf("http://127.0.0.1:%s", port)
+	}
+
 	router := http.NewServeMux()
 	router.HandleFunc("POST /reverse", reverse.ReverseHandler)
 	router.HandleFunc("/", error.NotFoundHandler)
@@ -32,9 +38,10 @@ func main() {
 		Addr:         fmt.Sprintf(":%s", port),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      router,
+		Handler:      cors.CorsMiddleware(router, clientHost),
 	}
 
+	log.Printf("CORS Allowed for %s", clientHost)
 	log.Printf("Opiso Listening on http://127.0.0.1:%s", port)
 	log.Fatal(s.ListenAndServe())
 }
