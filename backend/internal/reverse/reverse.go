@@ -2,9 +2,9 @@ package reverse
 
 import (
 	"encoding/json"
-	"github.com/jimbot9k/opiso/internal/error"
 	"net/http"
 	"sync"
+	"github.com/jimbot9k/opiso/internal/error"
 )
 
 type reverseRequest struct {
@@ -27,14 +27,14 @@ func ReverseHandler(w http.ResponseWriter, r *http.Request) {
 	results := make([]string, len(requestBody.Messages))
 	var wg sync.WaitGroup
 
-	for i, word := range results {
+	for i, word := range requestBody.Messages {
 		wg.Add(1)
 		go processWord(word, i, results, &wg)
 	}
 
 	wg.Wait()
 
-	result := reverseResponse{Reversed: requestBody.Messages}
+	result := reverseResponse{Reversed: results}
 	json.NewEncoder(w).Encode(result)
 }
 
