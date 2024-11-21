@@ -17,6 +17,10 @@ CORS_ORIGIN (default:http://localhost:${port}) - origins of sites accessing this
 # frontend
 A basic Vue.js application for sending requests to the backend.
 
+environment variables:
+
+VITE_API_URL(default:http://localhost:8080) - the backend API Base URL
+
 # docker-compose.yaml
 ```bash
 docker-compose up --build
