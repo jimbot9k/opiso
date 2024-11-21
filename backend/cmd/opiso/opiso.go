@@ -32,19 +32,19 @@ func main() {
 		corsOrigin = fmt.Sprintf("http://127.0.0.1:%s", port)
 	}
 
-	processesAllowedRaw, processesAllowedFound := os.LookupEnv("PROCESS_COUNT")
-	if !processesAllowedFound {
-		processesAllowedRaw = "1000";
+	routinesAllowedRaw, routinesAllowedFound := os.LookupEnv("ROUTINES_LIMIT")
+	if !routinesAllowedFound {
+		routinesAllowedRaw = "1000";
 	}
-	processesAllowed, err := strconv.Atoi(processesAllowedRaw)
+	routinesAllowed, err := strconv.Atoi(routinesAllowedRaw)
     if err != nil {
-		log.Fatal("Invalid Process Count Provided")
+		log.Fatal("Invalid Routine Count Provided")
 		return;
     }
 
-	processesAllowedSemaphore := make(chan struct{}, processesAllowed)
+	routinesAllowedSemaphore := make(chan struct{}, routinesAllowed)
 	router := http.NewServeMux()
-	router.HandleFunc("POST /reverse", reverse.ReverseHandler(processesAllowedSemaphore))
+	router.HandleFunc("POST /reverse", reverse.ReverseHandler(routinesAllowedSemaphore))
 	router.HandleFunc("/", error.NotFoundHandler)
 
 	s := &http.Server{
@@ -54,7 +54,7 @@ func main() {
 		Handler:      cors.CorsMiddleware(router, corsOrigin),
 	}
 
-	log.Printf("%d Handler Processes Allowed Concurrently", processesAllowed)
+	log.Printf("%d Handler Routines Allowed Concurrently", routinesAllowed)
 	log.Printf("CORS Allowed for %s", corsOrigin)
 	log.Printf("Opiso Listening on http://127.0.0.1:%s", port)
 	log.Fatal(s.ListenAndServe())
