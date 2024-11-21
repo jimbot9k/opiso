@@ -15,31 +15,35 @@ type reverseResponse struct {
 	Reversed []string `json:"reversed"`
 }
 
-func ReverseHandler(w http.ResponseWriter, r *http.Request) {
+func ReverseHandler(processCountSemaphore chan struct{}) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		decoder := json.NewDecoder(r.Body)
+		var requestBody reverseRequest
+		if err := decoder.Decode(&requestBody); err != nil || requestBody.Messages == nil {
+			error.BadRequestHandler(w, r)
+			return
+		}
 
-	decoder := json.NewDecoder(r.Body)
-	var requestBody reverseRequest
-	if err := decoder.Decode(&requestBody); err != nil || requestBody.Messages == nil {
-		error.BadRequestHandler(w, r)
-		return
+		results := make([]string, len(requestBody.Messages))
+		var wg sync.WaitGroup
+
+		for i, word := range requestBody.Messages {
+			wg.Add(1)
+			processCountSemaphore <- struct{}{}
+			go processWord(word, i, results, &wg, processCountSemaphore)
+		}
+
+		wg.Wait()
+
+		result := reverseResponse{Reversed: results}
+		json.NewEncoder(w).Encode(result)
 	}
-
-	results := make([]string, len(requestBody.Messages))
-	var wg sync.WaitGroup
-
-	for i, word := range requestBody.Messages {
-		wg.Add(1)
-		go processWord(word, i, results, &wg)
-	}
-
-	wg.Wait()
-
-	result := reverseResponse{Reversed: results}
-	json.NewEncoder(w).Encode(result)
 }
 
-func processWord(word string, index int, results []string, wg *sync.WaitGroup) {
+func processWord(word string, index int, results []string, wg *sync.WaitGroup, processCountSemaphore chan struct{}) {
 	defer wg.Done()
+	defer func() { <-processCountSemaphore }()
+
 	results[index] = reverseWord(word)
 }
 

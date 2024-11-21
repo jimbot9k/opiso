@@ -8,6 +8,7 @@ services:
     environment:
       - PORT=4040
       - CORS_ORIGIN=*
+      - PROCESS_COUNT=9999
   opiso-client:
     build:
       context: ./frontend
