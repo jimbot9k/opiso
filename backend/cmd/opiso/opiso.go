@@ -34,7 +34,7 @@ func main() {
 
 	routinesAllowedRaw, routinesAllowedFound := os.LookupEnv("ROUTINES_LIMIT")
 	if !routinesAllowedFound {
-		routinesAllowedRaw = "1000";
+		routinesAllowedRaw = "50000";
 	}
 	routinesAllowed, err := strconv.Atoi(routinesAllowedRaw)
     if err != nil {
