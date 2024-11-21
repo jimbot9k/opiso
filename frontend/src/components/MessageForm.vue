@@ -9,7 +9,7 @@
         class="block p-2.5 resize-none text-sm bg-white border first:border-black text-black rounded w-8/12">
       </textarea>
       <button class="text-white font-bold py-2 px-4 rounded h-12 w-60 shadow-lg"
-        :class="loading ? 'bg-gray-600' : 'bg-blue-500 hover:bg-blue-700 '" :disabled="loading" type="submit">{{ loading ? 'Loading' : 'Submit' }}
+        :class="allowSubmit() ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-700 '" :disabled="allowSubmit()">{{ loading ? 'Loading' : 'Submit' }}
       </button>
     </form>
 
@@ -52,10 +52,14 @@ export default defineComponent({
     const messagesResponses = ref<MessagesResponse[]>([])
     const loading = ref(false);
 
+    const allowSubmit = (): boolean => {
+      return loading.value || formData.rawMessages.length === 0
+    };
+
     const submitForm = async () => {
-      loading.value = true;
       const messages = formData.rawMessages.split(" ");
       const request: MessagesRequest = { "messages": messages };
+      loading.value = true;
 
       try {
         const start = Date.now();
@@ -95,6 +99,7 @@ export default defineComponent({
       messagesResponses,
       submitForm,
       copyMessages,
+      allowSubmit,
     };
   },
 });

@@ -28,8 +28,8 @@ watch(() => props.message, (newMessage) => {
 
   if (timeoutId !== null) {
     clearTimeout(timeoutId);
-    visible.value = false;
     timeoutId = null;
+    visible.value = false;
   }
 
   visible.value = true;
