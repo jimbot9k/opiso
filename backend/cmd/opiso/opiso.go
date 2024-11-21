@@ -34,13 +34,13 @@ func main() {
 
 	routinesAllowedRaw, routinesAllowedFound := os.LookupEnv("ROUTINES_LIMIT")
 	if !routinesAllowedFound {
-		routinesAllowedRaw = "50000";
+		routinesAllowedRaw = "1000"
 	}
 	routinesAllowed, err := strconv.Atoi(routinesAllowedRaw)
-    if err != nil {
+	if err != nil {
 		log.Fatal("Invalid Routine Count Provided")
-		return;
-    }
+		return
+	}
 
 	routinesAllowedSemaphore := make(chan struct{}, routinesAllowed)
 	router := http.NewServeMux()

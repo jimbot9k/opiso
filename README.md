@@ -9,7 +9,7 @@ A minimal Golang 1.23 application. It serves POST requests on /reverse, which ta
 
 PORT (default:8080) - what port does the server run on.
 
-ROUTINE_LIMIT (default:50000) - how many go routines can run concurrently to reverse words. 
+ROUTINE_LIMIT (default:1000) - how many go routines can run concurrently to reverse words. 
 
 CORS_ORIGIN (default:http://localhost:${port}) - origins of sites accessing this backend allowed. 
 
