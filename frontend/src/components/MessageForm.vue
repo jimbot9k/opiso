@@ -1,21 +1,30 @@
 <template>
-  <form @submit.prevent="submitForm">
-    <div>
+  <div class="scroll-none min-h-screen flex flex-col items-center bg-blue-100">
+
+    <form @submit.prevent="submitForm" @keydown.ctrl.enter="submitForm" @keydown.shift.enter="submitForm"
+      class="sticky top-0 flex flex-row items-end w-full gap-4 py-8 justify-center bg-blue-100 shadow-lg">
       <textarea id="message" v-model="formData.rawMessages"
         placeholder="Write your messages here. Each word in the input counts as a message. Each message will be reversed upon submission."
-        rows="5" cols="30"></textarea>
-    </div>
-    <button type="submit">Submit</button>
-  </form>
-  <ol>
-    <li v-for="response in messagesResponses" :key="response">
-      {{ response.reversed }}
-    </li>
-  </ol>
+        rows="5" cols="60" autofocus
+        class="block p-2.5 resize-none text-sm bg-white border first:border-black text-black rounded w-8/12">
+      </textarea>
+      <button class="text-white font-bold py-2 px-4 rounded h-12 w-60 shadow-lg"
+        :class="loading ? 'bg-gray-600' : 'bg-blue-500 hover:bg-blue-700 '" :disabled="loading" type="submit">{{ loading ? 'Loading' : 'Submit' }}
+      </button>
+    </form>
+
+    <ol class="m-4 flex flex-col-reverse items-center gap-4">
+      <li v-for="response in messagesResponses" v-on:click="copyMessages(response)"
+        class="flex flex-row gap-4 text-base rounded border border-black hover:bg-blue-200 hover:cursor-copy p-4 w-fit flex-wrap shadow-lg bg-white">
+        <span v-for="word in response.reversed">{{ word }}</span>
+      </li>
+    </ol>
+  </div>
+
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, ref } from "vue";
+import { defineComponent, inject, reactive, ref } from "vue";
 
 interface FormData {
   rawMessages: string;
@@ -35,21 +44,21 @@ interface ErrorResponse {
 
 export default defineComponent({
   setup() {
+    const snackbar = inject<{ message: string; showSnackbar: (msg: string, duration?: number) => void }>('snackbar');
+
     const formData = reactive<FormData>({
       rawMessages: "",
     });
     const messagesResponses = ref<MessagesResponse[]>([])
     const loading = ref(false);
-    const error = ref<string | null>(null);
 
     const submitForm = async () => {
       loading.value = true;
-      error.value = null;
-
       const messages = formData.rawMessages.split(" ");
       const request: MessagesRequest = { "messages": messages };
 
       try {
+        const start = Date.now();
         const response = await fetch("http://localhost:8080/reverse", {
           method: "POST",
           headers: {
@@ -60,25 +69,32 @@ export default defineComponent({
         });
 
         if (!response.ok) {
-          throw new Error(`Error: ${await response.json() as ErrorResponse}`);
+          throw new Error(`Error: ${(await response.json() as ErrorResponse).message}`);
         }
         const newResponse = await response.json() as MessagesResponse;
         messagesResponses.value.push(newResponse);
-        console.log(messagesResponses.value);
         formData.rawMessages = "";
+        window.scrollTo(0, 0);
+        const end = Date.now();
+        snackbar?.showSnackbar(`Messaged reversed successfully in ${end - start} ms`, 3000);
       } catch (err: any) {
-        error.value = err.message;
+        snackbar?.showSnackbar(err.message, 3000);
       } finally {
         loading.value = false;
       }
     };
 
+    const copyMessages = (messages: MessagesResponse) => {
+      navigator.clipboard.writeText(messages.reversed.join(" "));
+      snackbar?.showSnackbar(`Message copied`, 3000);
+    }
+
     return {
       formData,
       loading,
-      error,
-      submitForm,
       messagesResponses,
+      submitForm,
+      copyMessages,
     };
   },
 });
