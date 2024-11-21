@@ -15,8 +15,9 @@
     </form>
 
     <ol class="m-4 flex flex-col-reverse items-center gap-4">
-      <li v-for="response in messagesResponses" v-on:click="copyMessages(response)"
+      <li v-for="(response, index) in messagesResponses" v-on:click="copyMessages(response)"
         class="flex flex-row gap-4 text-base rounded border border-black hover:bg-blue-200 hover:cursor-copy p-4 w-fit flex-wrap shadow-lg bg-white">
+        <DeleteIcon v-on:click.stop="deleteMessage(index)" class="fill-red-600"></DeleteIcon>
         <span v-for="word in response.reversed">{{ word }}</span>
       </li>
     </ol>
@@ -27,6 +28,8 @@
 <script lang="ts">
 import { API_URL } from "@/config";
 import { defineComponent, inject, reactive, ref } from "vue";
+import DeleteIcon from "./DeleteIcon.vue";
+
 
 interface FormData {
   rawMessages: string;
@@ -57,6 +60,10 @@ export default defineComponent({
     const allowSubmit = (): boolean => {
       return loading.value || formData.rawMessages.length === 0
     };
+
+    const deleteMessage = (index: number): void => {
+      messagesResponses.value.splice(index, 1)
+    }
 
     const submitForm = async () => {
       const messages = formData.rawMessages.split(" ");
@@ -102,7 +109,11 @@ export default defineComponent({
       submitForm,
       copyMessages,
       allowSubmit,
+      deleteMessage
     };
   },
+  components: {
+    DeleteIcon
+  }
 });
 </script>
