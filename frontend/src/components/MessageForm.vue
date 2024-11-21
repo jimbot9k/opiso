@@ -9,7 +9,8 @@
         class="block p-2.5 resize-none text-sm bg-white border first:border-black text-black rounded w-8/12">
       </textarea>
       <button class="text-white font-bold py-2 px-4 rounded h-12 w-60 shadow-lg"
-        :class="allowSubmit() ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-700 '" :disabled="allowSubmit()">{{ loading ? 'Loading' : 'Submit' }}
+        :class="allowSubmit() ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-700 '" :disabled="allowSubmit()">{{ loading ?
+          'Loading' : 'Submit' }}
       </button>
     </form>
 
@@ -24,6 +25,7 @@
 </template>
 
 <script lang="ts">
+import { API_URL } from "@/config";
 import { defineComponent, inject, reactive, ref } from "vue";
 
 interface FormData {
@@ -63,7 +65,7 @@ export default defineComponent({
 
       try {
         const start = Date.now();
-        const response = await fetch("http://localhost:8080/reverse", {
+        const response = await fetch(`${API_URL}/reverse`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

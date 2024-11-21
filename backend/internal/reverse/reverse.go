@@ -2,9 +2,9 @@ package reverse
 
 import (
 	"encoding/json"
+	"github.com/jimbot9k/opiso/internal/error"
 	"net/http"
 	"sync"
-	"github.com/jimbot9k/opiso/internal/error"
 )
 
 type reverseRequest struct {

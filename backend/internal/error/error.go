@@ -6,7 +6,7 @@ import (
 )
 
 type error struct {
-	Message string
+	Message string `json:"message"`
 }
 
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {

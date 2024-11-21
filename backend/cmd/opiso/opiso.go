@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/jimbot9k/opiso/internal/cors"
 	"github.com/jimbot9k/opiso/internal/error"
 	"github.com/jimbot9k/opiso/internal/reverse"
-	"github.com/jimbot9k/opiso/internal/cors"
 	"log"
 	"net/http"
 	"os"
@@ -25,9 +25,9 @@ func main() {
 		port = DEFAULT_PORT
 	}
 
-	clientHost, clientHostFound := os.LookupEnv("FRONTEND_HOST")
-	if !clientHostFound {
-		clientHost = fmt.Sprintf("http://127.0.0.1:%s", port)
+	corsOrigin, corsOriginFound := os.LookupEnv("CORS_ORIGIN")
+	if !corsOriginFound {
+		corsOrigin = fmt.Sprintf("http://127.0.0.1:%s", port)
 	}
 
 	router := http.NewServeMux()
@@ -38,10 +38,10 @@ func main() {
 		Addr:         fmt.Sprintf(":%s", port),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      cors.CorsMiddleware(router, clientHost),
+		Handler:      cors.CorsMiddleware(router, corsOrigin),
 	}
 
-	log.Printf("CORS Allowed for %s", clientHost)
+	log.Printf("CORS Allowed for %s", corsOrigin)
 	log.Printf("Opiso Listening on http://127.0.0.1:%s", port)
 	log.Fatal(s.ListenAndServe())
 }

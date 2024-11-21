@@ -1,0 +1,20 @@
+services:
+  opiso-server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "4040:4040"
+    environment:
+      - PORT=4040
+      - CORS_ORIGIN=*
+  opiso-client:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:4040
+    ports:
+      - "80:80"
+    environment:
+      - PORT=80
