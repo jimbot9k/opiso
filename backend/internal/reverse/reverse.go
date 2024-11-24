@@ -29,61 +29,92 @@ var (
 			Help: "Number of messages reversed",
 		},
 	)
-
 	totalReverseRequests = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "opiso_reverse_reverse_requests",
 			Help: "Number of requests to reverse messages",
 		},
 	)
+	messagesCached = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "opiso_reverse_messages_cached",
+			Help: "Number of messages in cache",
+		},
+	)
 )
 
 func init() {
-	prometheus.MustRegister(semaphoreLimitUsage)
-	prometheus.MustRegister(messagesReversed)
-	prometheus.MustRegister(totalReverseRequests)
+	prometheus.MustRegister(semaphoreLimitUsage, messagesReversed, totalReverseRequests, messagesCached)
 }
 
-func ReverseHandler(routinesCountSemaphore chan struct{}) http.HandlerFunc {
+// ReverseHandlerWithCache creates an HTTP handler for reversing words with caching.
+func ReverseHandlerWithCache(routinesCountSemaphore chan struct{}, cacheSize int, cacheKeyMinimumSize int) http.HandlerFunc {
+	cache := NewCache(cacheSize)
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		decoder := json.NewDecoder(r.Body)
 		totalReverseRequests.Inc()
+
 		var requestBody reverseRequest
-		if err := decoder.Decode(&requestBody); err != nil || requestBody.Messages == nil {
+		if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil || requestBody.Messages == nil {
 			error.BadRequestHandler(w, r)
 			return
 		}
+		results := reverseWordsConcurrently(requestBody.Messages, routinesCountSemaphore, cache, cacheKeyMinimumSize)
 
-		results := make([]string, len(requestBody.Messages))
-		var wg sync.WaitGroup
+		response := reverseResponse{Reversed: results}
+		json.NewEncoder(w).Encode(response)
+	}
+}
 
-		for i, word := range requestBody.Messages {
-			wg.Add(1)
-			routinesCountSemaphore <- struct{}{}
-			semaphoreLimitUsage.Inc()
-			go processWord(word, i, results, &wg, routinesCountSemaphore)
+// reverseWordsConcurrently processes words concurrently while respecting the semaphore that manages the routine limit.
+func reverseWordsConcurrently(messages []string, routinesCountSemaphore chan struct{}, cache *Cache, cacheKeyMinimumSize int) []string {
+	results := make([]string, len(messages))
+	var wg sync.WaitGroup
+
+	for i, word := range messages {
+		wg.Add(1)
+		routinesCountSemaphore <- struct{}{}
+		semaphoreLimitUsage.Inc()
+
+		go func(word string, index int) {
+			defer wg.Done()
+			defer func() { <-routinesCountSemaphore }()
+			defer semaphoreLimitUsage.Dec()
+
+			reversedWord, evictionOccured, cachedMessageUsed := reverseWithCache(word, cache, cacheKeyMinimumSize)
+			if !evictionOccured && !cachedMessageUsed {
+				defer messagesCached.Inc()
+			}
+			results[index] = reversedWord
 			messagesReversed.Inc()
-		}
-
-		wg.Wait()
-
-		result := reverseResponse{Reversed: results}
-		json.NewEncoder(w).Encode(result)
+		}(word, i)
 	}
+
+	wg.Wait()
+	return results
 }
 
-func processWord(word string, index int, results []string, wg *sync.WaitGroup, routinesCountSemaphore chan struct{}) {
-	defer wg.Done()
-	defer func() { <-routinesCountSemaphore }()
-	defer semaphoreLimitUsage.Dec()
+// reverseWithCache reverses a word, using the cache if available.
+func reverseWithCache(word string, cache *Cache, cacheKeyMinimumSize int) (string, bool, bool) {
+	evictionOccured := false
+	cachedValueUsed := true
+	if cached, found := cache.Get(word); found {
+		return cached, evictionOccured, cachedValueUsed
+	}
 
-	results[index] = reverseWord(word)
+	reversed := reverseWord(word)
+	cachedValueUsed = false
+	if len(word) >= cacheKeyMinimumSize {
+		evictionOccured = cache.Set(word, reversed)
+	}
+	return reversed, evictionOccured, cachedValueUsed
 }
 
+// reverseWord reverses a single word.
 func reverseWord(word string) string {
-	reversedChars := []rune(word)
-	for i, j := 0, len(reversedChars)-1; i < j; i, j = i+1, j-1 {
-		reversedChars[i], reversedChars[j] = reversedChars[j], reversedChars[i]
+	runes := []rune(word)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
 	}
-	return string(reversedChars)
+	return string(runes)
 }
