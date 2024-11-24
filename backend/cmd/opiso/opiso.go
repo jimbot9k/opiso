@@ -2,15 +2,15 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/jimbot9k/opiso/internal/cors"
 	"github.com/jimbot9k/opiso/internal/error"
 	"github.com/jimbot9k/opiso/internal/headers"
 	"github.com/jimbot9k/opiso/internal/reverse"
 	"github.com/jimbot9k/opiso/internal/status"
 	"github.com/jimbot9k/opiso/internal/util"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"log"
+	"net/http"
 )
 
 const DEFAULT_PORT = "8080"
@@ -39,8 +39,8 @@ func main() {
 	router.HandleFunc("/", error.NotFoundHandler)
 
 	s := &http.Server{
-		Addr:         fmt.Sprintf(":%s", port),
-		Handler:      headers.HeaderJsonMiddleware(cors.CorsMiddleware(router, corsOrigin)),
+		Addr:    fmt.Sprintf(":%s", port),
+		Handler: headers.HeaderJsonMiddleware(cors.CorsMiddleware(router, corsOrigin)),
 	}
 
 	log.Printf("%d Handler Routines Allowed Concurrently", routinesAllowed)
