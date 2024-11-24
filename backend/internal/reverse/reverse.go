@@ -83,7 +83,7 @@ func reverseWordsConcurrently(messages []string, routinesCountSemaphore chan str
 			defer semaphoreLimitUsage.Dec()
 
 			reversedWord, cacheSizeIncreased := reverseWithCache(word, cache, cacheKeyMinimumSize)
-			if cacheSizeIncreased{
+			if cacheSizeIncreased {
 				defer messagesCached.Inc()
 			}
 			results[index] = reversedWord

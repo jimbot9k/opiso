@@ -46,6 +46,10 @@ func (c *Cache) Set(key string, value string) bool {
 
 	evictionOccured := false
 
+	if c.capacity == 0 {
+		return evictionOccured
+	}
+
 	if elem, ok := c.items[key]; ok {
 		elem.Value.(*entry).value = value
 		c.eviction.MoveToFront(elem)
