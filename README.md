@@ -47,6 +47,10 @@ The frontend is a basic Vue.js SPA application. It has a form with a text area a
 
 Like the backend, the frontend tried to minimise dependencies. State libraries, HTTP request libraries and other tools could be used for more complicated applications. 
 
+Styling is done with Tailwind.
+
+The dockerfile compiles the Vue.js application using Vite, and serves it behind Nginx.
+
 # docker-compose.yaml
 ```bash
 docker-compose up --build
