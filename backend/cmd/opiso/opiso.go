@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"github.com/jimbot9k/opiso/internal/cors"
 	"github.com/jimbot9k/opiso/internal/error"
 	"github.com/jimbot9k/opiso/internal/headers"
+	"github.com/jimbot9k/opiso/internal/openapi"
 	"github.com/jimbot9k/opiso/internal/reverse"
 	"github.com/jimbot9k/opiso/internal/status"
 	"github.com/jimbot9k/opiso/internal/util"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"log"
-	"net/http"
 )
 
 const DEFAULT_PORT = "8080"
@@ -36,6 +37,7 @@ func main() {
 	router.HandleFunc("POST /reverse", reverse.ReverseHandlerWithCache(routinesAllowedSemaphore, cacheSize, cacheWordMinimumLength))
 	router.HandleFunc("GET /health", status.HealthHandler)
 	router.Handle("/metrics", promhttp.Handler())
+	router.HandleFunc("/openapi", openapi.OpenapiHandler)
 	router.HandleFunc("/", error.NotFoundHandler)
 
 	s := &http.Server{

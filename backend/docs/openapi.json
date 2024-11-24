@@ -1,0 +1,95 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Opiso API",
+    "description": "API for reversing messages, with caching and concurrency limits.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/reverse": {
+      "post": {
+        "summary": "Reverse messages in a request",
+        "description": "Reverses an array of messages provided in the request body. Caches the results for repeated messages and respects a concurrency limit.",
+        "requestBody": {
+          "description": "List of messages to reverse",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReverseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully reversed the messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReverseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ReverseRequest": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of messages to reverse"
+          }
+        },
+        "required": [
+          "messages"
+        ]
+      },
+      "ReverseResponse": {
+        "type": "object",
+        "properties": {
+          "reversed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of reversed messages"
+          }
+        },
+        "required": [
+          "reversed"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message describing the issue"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+    }
+  }
+}
