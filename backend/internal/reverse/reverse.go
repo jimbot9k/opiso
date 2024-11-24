@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"sync"
+
 	"github.com/jimbot9k/opiso/internal/error"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -81,8 +82,8 @@ func reverseWordsConcurrently(messages []string, routinesCountSemaphore chan str
 			defer func() { <-routinesCountSemaphore }()
 			defer semaphoreLimitUsage.Dec()
 
-			reversedWord, evictionOccured, cachedMessageUsed := reverseWithCache(word, cache, cacheKeyMinimumSize)
-			if !evictionOccured && !cachedMessageUsed {
+			reversedWord, cacheSizeIncreased := reverseWithCache(word, cache, cacheKeyMinimumSize)
+			if cacheSizeIncreased{
 				defer messagesCached.Inc()
 			}
 			results[index] = reversedWord
@@ -94,20 +95,23 @@ func reverseWordsConcurrently(messages []string, routinesCountSemaphore chan str
 	return results
 }
 
-// reverseWithCache reverses a word, using the cache if available.
-func reverseWithCache(word string, cache *Cache, cacheKeyMinimumSize int) (string, bool, bool) {
+// reverseWithCache reverses a word, using the cache if available. Returns true if a new word was added to the cache, and the cache size increased.
+func reverseWithCache(word string, cache *Cache, cacheKeyMinimumSize int) (string, bool) {
 	evictionOccured := false
 	cachedValueUsed := true
+	wordWasCached := false
+
 	if cached, found := cache.Get(word); found {
-		return cached, evictionOccured, cachedValueUsed
+		return cached, !evictionOccured && !cachedValueUsed && wordWasCached
 	}
 
 	reversed := reverseWord(word)
 	cachedValueUsed = false
 	if len(word) >= cacheKeyMinimumSize {
+		wordWasCached = true
 		evictionOccured = cache.Set(word, reversed)
 	}
-	return reversed, evictionOccured, cachedValueUsed
+	return reversed, !evictionOccured && !cachedValueUsed && wordWasCached
 }
 
 // reverseWord reverses a single word.
