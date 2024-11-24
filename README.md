@@ -5,7 +5,7 @@ Named for the transliteration of a Greek word for 'backwards'. [Source](https://
 This project consists of two applications. A RESTful Golang Backend, and a Vue.js client application to interact with it.
 
 # backend
-A minimal Golang 1.23 application. It serves POST requests on /reverse, which takes an array of words and reverses each word. It has basic configuration options via environment variables. A health endpoint is exposed on /health, and a Prometheus metric endpoint is served on /metrics.
+A minimal Golang 1.23 application. It serves POST requests on /reverse, which takes an array of words and reverses each word. It has basic configuration options via environment variables. A health endpoint is exposed on /health, and a Prometheus metric endpoint is served on /metrics. An OpenAPI endpoint is available on /openapi, this can be used via a Swagger UI deployment.
 
 PORT (default:8080) - what port does the server run on.
 

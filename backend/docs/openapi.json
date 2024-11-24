@@ -81,9 +81,9 @@
       "ErrorResponse": {
         "type": "object",
         "properties": {
-          "error": {
+          "message": {
             "type": "string",
-            "description": "Error message describing the issue"
+            "description": "Message message describing the error"
           }
         },
         "required": [
