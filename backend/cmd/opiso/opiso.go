@@ -11,6 +11,8 @@ import (
 	"github.com/jimbot9k/opiso/internal/cors"
 	"github.com/jimbot9k/opiso/internal/error"
 	"github.com/jimbot9k/opiso/internal/reverse"
+	"github.com/jimbot9k/opiso/internal/status"
+	"github.com/jimbot9k/opiso/internal/headers"
 )
 
 const DEFAULT_PORT = "8080"
@@ -45,13 +47,14 @@ func main() {
 	routinesAllowedSemaphore := make(chan struct{}, routinesAllowed)
 	router := http.NewServeMux()
 	router.HandleFunc("POST /reverse", reverse.ReverseHandler(routinesAllowedSemaphore))
+	router.HandleFunc("GET /health", status.HealthHandler)
 	router.HandleFunc("/", error.NotFoundHandler)
 
 	s := &http.Server{
 		Addr:         fmt.Sprintf(":%s", port),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
-		Handler:      cors.CorsMiddleware(router, corsOrigin),
+		Handler:      headers.HeaderJsonMiddleware(cors.CorsMiddleware(router, corsOrigin)),
 	}
 
 	log.Printf("%d Handler Routines Allowed Concurrently", routinesAllowed)
