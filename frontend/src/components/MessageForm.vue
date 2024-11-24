@@ -10,7 +10,7 @@
       </textarea>
       <button class="text-white font-bold py-2 px-4 rounded h-12 w-60 shadow-lg"
         :class="allowSubmit() ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-700 '" :disabled="allowSubmit()">{{ loading ?
-          'Loading' : 'Submit' }}
+          'Loading.' : 'Send.' }}
       </button>
     </form>
 
