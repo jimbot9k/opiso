@@ -1,5 +1,5 @@
 <template>
-  <div v-if="visible" class="fixed bottom-4 right-4 bg-green-800 text-white px-4 py-2 rounded shadow-lg">
+  <div v-if="visible && message" class="fixed bottom-4 right-4 bg-green-800 text-white px-4 py-2 rounded shadow-lg">
     {{ message }}
   </div>
 </template>
@@ -9,7 +9,7 @@ import { onUnmounted, ref, watch } from 'vue';
 
 const props = defineProps({
   message: {
-    type: String,
+    type: [String, null],
     required: true,
   },
   duration: {
@@ -19,31 +19,35 @@ const props = defineProps({
 });
 
 const visible = ref(false);
-let timeoutId: number | null = null;
+const message = ref<string | null>(null);
+
+let timeoutId: number | undefined;
 
 watch(() => props.message, (newMessage) => {
   if (!newMessage) {
+    message.value = null;
+    visible.value = false;
+    snackbarClearTimeoutIfExists();
     return;
   }
 
-  if (timeoutId !== null) {
-    clearTimeout(timeoutId);
-    timeoutId = null;
-    visible.value = false;
-  }
-
+  snackbarClearTimeoutIfExists();
   visible.value = true;
+  message.value = props.message;
   timeoutId = setTimeout(() => {
-    timeoutId = null;
     visible.value = false;
+    message.value = null;
   }, props.duration);
 });
 
 onUnmounted(() => {
-  if (timeoutId === null) {
-    return;
-  }
-  clearTimeout(timeoutId);
-  timeoutId = null;
+  snackbarClearTimeoutIfExists()
 });
+
+const snackbarClearTimeoutIfExists = () => {
+  if (timeoutId !== undefined) {
+    timeoutId = undefined;
+    clearTimeout(timeoutId);
+  }
+}
 </script>

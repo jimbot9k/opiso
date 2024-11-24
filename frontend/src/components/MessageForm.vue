@@ -18,7 +18,7 @@
       <li v-for="(response, index) in messagesResponses" v-on:click="copyMessages(response)"
         class="flex flex-row gap-4 text-base rounded border border-black hover:bg-blue-200 hover:cursor-copy p-4 w-fit flex-wrap shadow-lg bg-white">
         <DeleteIcon v-on:click.stop="deleteMessage(index)" class="fill-red-600"></DeleteIcon>
-        <span v-for="word in response.reversed">{{ word }}</span>
+        <span class="break-all" v-for="word in response.reversed">{{ word }}</span>
       </li>
     </ol>
   </div>
@@ -71,8 +71,9 @@ export default defineComponent({
       loading.value = true;
 
       try {
-        const start = Date.now();
-        const response = await fetch(`${API_URL}/reverse`, {
+        const requestUrl = `${API_URL}/reverse`;
+
+        const response = await fetch(requestUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -88,8 +89,14 @@ export default defineComponent({
         messagesResponses.value.push(newResponse);
         formData.rawMessages = "";
         window.scrollTo(0, 0);
-        const end = Date.now();
-        snackbar?.showSnackbar(`Messaged reversed successfully in ${end - start} ms`, 3000);
+
+        const entries = performance.getEntriesByName(requestUrl);
+        performance.clearResourceTimings();
+        if (entries.length > 0) {
+          const timing = entries[0];
+          const duration = timing.duration
+          snackbar?.showSnackbar(`Messaged reversed successfully in ${duration.toFixed(2)} ms`, 3000);
+        }
       } catch (err: any) {
         snackbar?.showSnackbar(err.message, 3000);
       } finally {
