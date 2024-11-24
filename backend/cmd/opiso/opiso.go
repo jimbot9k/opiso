@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 	"time"
-
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/jimbot9k/opiso/internal/cors"
 	"github.com/jimbot9k/opiso/internal/error"
 	"github.com/jimbot9k/opiso/internal/reverse"
@@ -34,7 +34,7 @@ func main() {
 		corsOrigin = fmt.Sprintf("http://127.0.0.1:%s", port)
 	}
 
-	routinesAllowedRaw, routinesAllowedFound := os.LookupEnv("ROUTINES_LIMIT")
+	routinesAllowedRaw, routinesAllowedFound := os.LookupEnv("ROUTINE_LIMIT")
 	if !routinesAllowedFound {
 		routinesAllowedRaw = "1000"
 	}
@@ -48,6 +48,7 @@ func main() {
 	router := http.NewServeMux()
 	router.HandleFunc("POST /reverse", reverse.ReverseHandler(routinesAllowedSemaphore))
 	router.HandleFunc("GET /health", status.HealthHandler)
+	router.Handle("/metrics", promhttp.Handler())
 	router.HandleFunc("/", error.NotFoundHandler)
 
 	s := &http.Server{
