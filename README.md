@@ -17,6 +17,14 @@ CACHE_SIZE (default:1000) - how many messsages can be cached.
 
 CACHE_MINIMUM (default:10) - how long a message has to be to be cached.
 
+## backend tests
+
+Tests have been writted for the the "github.com/jimbot9k/opiso/internal/reverse" package. This package has 100% coverage. It is the only one tested right now due to it containing all the business logic of the application.
+
+```bash
+cd backend
+go test -cover ./...
+```
 
 # frontend
 A basic Vue.js application for sending requests to the backend.
